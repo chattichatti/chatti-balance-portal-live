@@ -27,13 +27,21 @@ export default async function handler(req, res) {
       body: JSON.stringify({ suspended: suspend })
     });
 
-    const result = await response.json();
+    const raw = await response.text();
+
+    let json;
+    try {
+      json = JSON.parse(raw);
+    } catch (parseErr) {
+      console.error("Non-JSON response:", raw);
+      return res.status(response.status).json({ error: 'Invalid response from Vonage', raw });
+    }
 
     if (!response.ok) {
-      console.error("Vonage API error:", response.status, result);
+      console.error("Vonage API error:", response.status, json);
       return res.status(response.status).json({
-        error: result?.error || 'Vonage API error',
-        detail: result
+        error: json?.error || 'Vonage API error',
+        detail: json
       });
     }
 
