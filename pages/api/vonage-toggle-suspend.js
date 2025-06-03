@@ -24,18 +24,30 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         Accept: 'application/json'
       },
-      body: JSON.stringify({ suspended: suspend })
+      body: JSON.stringify({ suspended: suspend }) // ✅ boolean true/false
     });
 
     const raw = await response.text();
 
-    // Always return raw text — no JSON parsing
-    return res.status(response.status).json({
-      status: response.status,
-      ok: response.ok,
-      raw
-    });
+    let json;
+    try {
+      json = JSON.parse(raw);
+    } catch (parseErr) {
+      console.error("Non-JSON response from Vonage:", raw);
+      return res.status(response.status).json({ error: 'Invalid response from Vonage', raw });
+    }
+
+    if (!response.ok) {
+      console.error("Vonage API error:", response.status, json);
+      return res.status(response.status).json({
+        error: json?.error || 'Vonage API error',
+        detail: json
+      });
+    }
+
+    return res.status(200).json({ message: `Subaccount ${suspend ? 'suspended' : 'reactivated'} successfully` });
   } catch (err) {
+    console.error("Server exception:", err);
     return res.status(500).json({ error: 'Server error', detail: err.message });
   }
 }
