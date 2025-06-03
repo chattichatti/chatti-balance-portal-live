@@ -1,39 +1,27 @@
 import { useState, useEffect } from 'react';
 
 function SubaccountsPanel() {
-  const [jwt, setJwt] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchJwtAndAccounts = async () => {
+    const fetchAccounts = async () => {
       try {
-        const jwtRes = await fetch('/api/generate-jwt');
-        const jwtData = await jwtRes.json();
-        if (!jwtRes.ok) throw new Error(jwtData.error || 'JWT error');
-
-        setJwt(jwtData.jwt);
-
-        const accountRes = await fetch('https://api.vonage.com/accounts/subaccounts', {
-          headers: {
-            Authorization: `Bearer ${jwtData.jwt}`
-          }
-        });
-
+        const accountRes = await fetch('/api/fetch-subaccounts');
         const accountData = await accountRes.json();
         if (!accountRes.ok) throw new Error(accountData.error || 'Subaccount fetch error');
 
-        setAccounts(accountData._embedded?.subaccounts || []);
+        setAccounts(accountData || []);
       } catch (err) {
         setError(err.message);
       }
     };
 
-    fetchJwtAndAccounts();
+    fetchAccounts();
   }, []);
 
   if (error) return <p className="text-red-500">Error: {error}</p>;
-  if (!jwt || accounts.length === 0) return <p>Loading subaccounts...</p>;
+  if (accounts.length === 0) return <p>Loading subaccounts...</p>;
 
   return (
     <div className="space-y-2">
@@ -43,7 +31,11 @@ function SubaccountsPanel() {
           <li key={acct.api_key} className="border-b py-2">
             <strong>API Key:</strong> {acct.api_key} <br />
             <strong>Status:</strong> {acct.status} <br />
-            {acct.name && <><strong>Name:</strong> {acct.name} <br /></>}
+            {acct.name && (
+              <>
+                <strong>Name:</strong> {acct.name} <br />
+              </>
+            )}
           </li>
         ))}
       </ul>
