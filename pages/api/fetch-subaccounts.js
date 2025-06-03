@@ -1,39 +1,32 @@
-import jwt from 'jsonwebtoken';
-
 export default async function handler(req, res) {
-  const privateKey = process.env.VONAGE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-  const applicationId = process.env.VONAGE_APPLICATION_ID;
-
-  if (!privateKey || !applicationId) {
-    return res.status(500).json({ error: 'Missing Vonage credentials' });
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Only GET allowed' });
   }
 
-  try {
-    const token = jwt.sign(
-      { application_id: applicationId },
-      privateKey,
-      { algorithm: 'RS256', expiresIn: '10m' }
-    );
+  const apiKey = process.env.VONAGE_API_KEY;
+  const apiSecret = process.env.VONAGE_API_SECRET;
 
-    const apiRes = await fetch('https://api.vonage.com/accounts/subaccounts', {
+  if (!apiKey || !apiSecret) {
+    return res.status(500).json({ error: 'Missing Vonage API credentials' });
+  }
+
+  const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
+
+  try {
+    const response = await fetch(`https://api.nexmo.com/accounts/${apiKey}/subaccounts`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Basic ${auth}`,
         Accept: 'application/json'
       }
     });
 
-    const text = await apiRes.text(); // Capture raw response first
+    const data = await response.json();
 
-    try {
-      const json = JSON.parse(text);
-      if (!apiRes.ok) {
-        return res.status(apiRes.status).json({ error: json.error || 'Vonage API error' });
-      }
-      return res.status(200).json(json._embedded?.subaccounts || []);
-    } catch (parseErr) {
-      return res.status(502).json({ error: 'Invalid JSON from Vonage', raw: text });
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data.error || 'Vonage API error' });
     }
 
+    return res.status(200).json(data._embedded?.subaccounts || []);
   } catch (err) {
     return res.status(500).json({ error: 'Server error', detail: err.message });
   }
