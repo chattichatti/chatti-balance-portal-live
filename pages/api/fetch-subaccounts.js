@@ -22,13 +22,18 @@ export default async function handler(req, res) {
       }
     });
 
-    const data = await apiRes.json();
+    const text = await apiRes.text(); // Capture raw response first
 
-    if (!apiRes.ok) {
-      return res.status(apiRes.status).json({ error: data.error || 'Vonage API error' });
+    try {
+      const json = JSON.parse(text);
+      if (!apiRes.ok) {
+        return res.status(apiRes.status).json({ error: json.error || 'Vonage API error' });
+      }
+      return res.status(200).json(json._embedded?.subaccounts || []);
+    } catch (parseErr) {
+      return res.status(502).json({ error: 'Invalid JSON from Vonage', raw: text });
     }
 
-    return res.status(200).json(data._embedded?.subaccounts || []);
   } catch (err) {
     return res.status(500).json({ error: 'Server error', detail: err.message });
   }
