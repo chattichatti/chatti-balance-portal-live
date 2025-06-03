@@ -15,6 +15,7 @@ export default async function handler(req, res) {
   const auth = Buffer.from(`${masterKey}:${masterSecret}`).toString('base64');
 
   try {
+console.log("Sending suspend:", suspend, "for:", apiKey);
     const response = await fetch(`https://api.nexmo.com/accounts/${masterKey}/subaccounts/${apiKey}`, {
       method: 'PUT',
       headers: {
