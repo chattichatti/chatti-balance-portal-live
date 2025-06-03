@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         Accept: 'application/json'
       },
-      body: JSON.stringify({ suspended: suspend })
+      body: JSON.stringify({ suspended: suspend ? "true" : "false" })
     });
 
     const raw = await response.text();
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     try {
       json = JSON.parse(raw);
     } catch (parseErr) {
-      console.error("Non-JSON response:", raw);
+      console.error("Non-JSON response from Vonage:", raw);
       return res.status(response.status).json({ error: 'Invalid response from Vonage', raw });
     }
 
