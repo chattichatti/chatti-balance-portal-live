@@ -1,1 +1,1 @@
-// tailwind config placeholder
+// Tailwind config placeholder
