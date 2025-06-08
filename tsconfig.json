@@ -8,9 +8,9 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["*"]
     },
     "forceConsistentCasingInFileNames": true,
     "strict": true,
