@@ -1,8 +1,8 @@
 'use client';
 
+import DefaultLayout from '@/components/Layouts/DefaultLayout';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import React from 'react';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
@@ -22,7 +22,7 @@ const chartSeries = [
 
 export default function AdminDashboard() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <DefaultLayout>
       <h1 className="text-3xl font-bold text-chatti-primary mb-8">Chatti Admin Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -44,7 +44,7 @@ export default function AdminDashboard() {
         <h2 className="text-xl font-semibold mb-4">📊 Daily SMS Traffic</h2>
         <Chart options={chartOptions} series={chartSeries} type="bar" height={300} />
       </div>
-    </div>
+    </DefaultLayout>
   );
 }
 
